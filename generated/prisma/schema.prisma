@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id         Int       @id @default(autoincrement())
+  name       String
+  created_at DateTime  @default(now())
+  deleted_at DateTime?
+  posts      Post[]    @relation("CategoryToPost")
+
+  @@map("categories")
+}
+
+model Post {
+  id           Int       @id @default(autoincrement())
+  category_id  Int
+  title        String
+  content      String
+  created_at   DateTime  @default(now())
+  published_at DateTime?
+  deleted_at   DateTime?
+  comments     Comment[] @relation("PostToComment")
+  post_tags    PostTag[] @relation("PostToTag")
+  category     Category  @relation("CategoryToPost", fields: [category_id], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
+  userId       Int
+
+  @@map("posts")
+}
+
+model Comment {
+  id             Int      @id @default(autoincrement())
+  post_id        Int
+  content        String
+  commenter_name String
+  created_at     DateTime @default(now())
+  post           Post     @relation("PostToComment", fields: [post_id], references: [id])
+  user           User     @relation(fields: [userId], references: [id])
+  userId         Int
+
+  @@map("comments")
+}
+
+model Tag {
+  id        Int       @id
+  name      String
+  post_tags PostTag[] @relation("PostToTag")
+
+  @@map("tags")
+}
+
+model PostTag {
+  post_id Int
+  tag_id  Int
+  post    Post @relation("PostToTag", fields: [post_id], references: [id])
+  tag     Tag  @relation("PostToTag", fields: [tag_id], references: [id])
+
+  @@id([post_id, tag_id])
+  @@map("post_tags")
+}
+
+model User {
+  id             Int            @id @default(autoincrement())
+  name           String
+  username       String         @unique
+  hashedPassword String         @map("hashed_password")
+  role           Role           @default(member)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  deletedAt      DateTime?      @map("deleted_at")
+  RefreshToken   RefreshToken[]
+  Post           Post[]
+  Comment        Comment[]
+}
+
+enum Role {
+  member
+  moderator
+  admin
+}
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+}
