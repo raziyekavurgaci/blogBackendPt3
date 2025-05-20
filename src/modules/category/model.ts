@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
+import { createCategoryType, updateCategoryType } from "./type";
 
 export const getAllCategories = async (showDeleted: string) => {
   let whereCondition = {};
@@ -19,13 +20,13 @@ export const getCategoryById = async (id: number) => {
   });
 };
 
-export const createCategory = async (name: string) => {
+export const createCategory = async (name: createCategoryType) => {
   return await prisma.category.create({
     data: { name },
   });
 };
 
-export const updateCategory = async (id: number, name: string) => {
+export const updateCategory = async (id: number, name: updateCategoryType) => {
   return await prisma.category.update({
     where: { id },
     data: { name },

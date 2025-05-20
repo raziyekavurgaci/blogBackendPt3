@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
+import { createPostType, updatePostType } from "./type";
 
 export const getAllPosts = async (
   showDeleted: string,
@@ -25,10 +26,13 @@ export const getAllPosts = async (
     whereCondition.published_at = null;
   }
   if (tag) {
-    const tagIds = tag.split(",").map((id) => Number(id));
-    whereCondition.tags = {
+    const tagIds = tag
+      .split(",")
+      .map((id) => Number(id))
+      .filter((id) => !isNaN(id));
+    whereCondition.post_tags = {
       some: {
-        id: { in: tagIds },
+        tagId: { in: tagIds },
       },
     };
 
@@ -40,25 +44,18 @@ export const getAllPosts = async (
 };
 
 export const getPostById = async (id: number) => {
-  return await prisma.post.findUnique({
+  return await prisma.post.findFirst({
     where: { id, deleted_at: null },
   });
 };
 
-export const createPost = async (data: {
-  title: string;
-  content: string;
-  category_id: number;
-}) => {
+export const createPost = async (data: createPostType) => {
   return await prisma.post.create({
     data,
   });
 };
 
-export const updatePost = async (
-  id: number,
-  data: { title?: string; content?: string; category_id?: number }
-) => {
+export const updatePost = async (id: number, data: updatePostType) => {
   return await prisma.post.update({
     where: { id },
     data,

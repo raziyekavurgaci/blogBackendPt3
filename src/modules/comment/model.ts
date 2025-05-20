@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
+import { createCommentType, updateCommentType } from "./type";
 
 export const getAllComments = async () => {
   return await prisma.comment.findMany();
@@ -11,11 +12,7 @@ export const getCommentById = async (id: number) => {
   });
 };
 
-export const createComment = async (data: {
-  content: string;
-  post_id: number;
-  commenter_name: string;
-}) => {
+export const createComment = async (data: createCommentType) => {
   return await prisma.comment.create({
     data: {
       content: data.content,
@@ -25,7 +22,7 @@ export const createComment = async (data: {
   });
 };
 
-export const updateComment = async (id: number, data: { content?: string }) => {
+export const updateComment = async (id: number, data: updateCommentType) => {
   return await prisma.comment.update({
     where: { id },
     data,
